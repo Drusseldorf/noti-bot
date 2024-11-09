@@ -1,9 +1,11 @@
 from datetime import datetime
 from app.db.models import Notification
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import User
-from sqlalchemy.exc import IntegrityError
+
+
+# TODO: добавить запросы для получения всех отправленных уведомлений, для редактирования уведомлений, для удаления уведомлений
 
 
 async def create_user_if_not_exist(session: AsyncSession, telegram_id: int):
@@ -22,7 +24,6 @@ async def get_user_by_telegram_id(
     return user
 
 
-# TODO: обрабатывать исключения нужно на функциях, которые вызывают эту, а не тут
 async def create_notification(
     session: AsyncSession,
     telegram_id: int,
@@ -34,18 +35,19 @@ async def create_notification(
         notification_text=notification_text,
         time_to_notify=time_to_notify,
     )
-    try:
-        session.add(notification)
-        await session.commit()
-        await session.close()
-        result = notification
-    except IntegrityError:
-        result = False
+
+    session.add(notification)
+    await session.commit()
+    await session.close()
+    result = notification
+
     return result
 
 
 async def get_all_notifications(session: AsyncSession, telegram_id: int):
-    stmt = select(Notification).where(Notification.telegram_id == telegram_id)
+    stmt = select(Notification).where(
+        and_(Notification.telegram_id == telegram_id, Notification.is_sent == False)
+    )
     notification_scalars = await session.scalars(stmt)
     return [
         (noti.notification_text, noti.time_to_notify)

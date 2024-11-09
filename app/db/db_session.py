@@ -11,4 +11,4 @@ class DatabaseHelper:
         )
 
 
-db_helper = DatabaseHelper(url=settings.db_url)
+db_helper = DatabaseHelper(url=settings.db_url, echo=True)

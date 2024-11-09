@@ -3,6 +3,7 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state, State, StatesGroup
 from aiogram.types import Message
+from sqlalchemy.exc import IntegrityError
 from app.db.db_session import db_helper
 from datetime import datetime
 from app.db.requests import create_notification
@@ -82,20 +83,20 @@ async def process_text_sent(message: Message, state: FSMContext):
     await state.update_data(text=message.text)
     data = await state.get_data()
     async with db_helper.session_factory() as session:
-        result = await create_notification(
-            session=session,
-            telegram_id=message.from_user.id,
-            notification_text=data["text"],
-            time_to_notify=datetime.strptime(data["date"], "%d.%m.%Y %H:%M"),
-        )
-        if result:
+        try:
+            await create_notification(
+                session=session,
+                telegram_id=message.from_user.id,
+                notification_text=data["text"],
+                time_to_notify=datetime.strptime(data["date"], "%d.%m.%Y %H:%M"),
+            )
             await message.answer(
                 "Спасибо! Ваша напоминалка создана:\n\n"
                 f"Время: {data['date']}\n"
                 f"Текст: {data['text']}\n\n"
                 "Посмотреть ваши напоминалки: /get_all_noti"
             )
-        else:
+        except IntegrityError:
             await message.answer(
                 "Упппс, что-то пошло не так :(\n\nПопробуйте еще раз /make_noti"
             )
