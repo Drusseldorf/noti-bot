@@ -1,9 +1,13 @@
 import asyncio
-from sqlalchemy import func, text
-from sqlalchemy.future import select
-from app.db.models import User, Notification
+from datetime import datetime, UTC
+from sqlalchemy import select, text
+from sqlalchemy.orm import joinedload
+
+from app.db.models import Notification
 from app.db.db_session import db_helper
+from app.helpers.datetime_helpers import to_user_time
 from app.tg_bot import bot
+from app.tg_bot.ru_text.ru_text import ru_message
 from config_data.config import settings
 
 
@@ -12,26 +16,38 @@ notification_check_interval_seconds = settings.notification_check_interval_secon
 
 async def check_reminders():
     async with db_helper.session_factory() as session:
-        now_utc = func.now().op("AT TIME ZONE")("UTC")
-        minute_interval = text("INTERVAL '1 minute'")
         query = (
             select(Notification)
-            .join(User, User.telegram_id == Notification.telegram_id)
+            .options(joinedload(Notification.user))
             .where(
-                Notification.is_sent.is_(False),
-                now_utc + (User.minutes_before_noti * minute_interval)
-                >= Notification.event_time,  # а юзер то пишет время напоминания тоже в своем поясе!!!
+                (
+                    Notification.event_time_utc
+                    - text("INTERVAL '1 minute' * notification_advance_time")
+                )
+                <= datetime.now(UTC).replace(tzinfo=None)
             )
+            .where(Notification.is_sent.is_(False))
         )
+
         notifications = await session.scalars(query)
+
         for notification in notifications.unique():
-            await bot.send_message(
-                chat_id=notification.telegram_id,
-                text=f"Время: {notification.time_to_notify}\nНапоминание: {notification.notification_text}",
-            )
+            await send_notifications(notification)
             notification.is_sent = True
             session.add(notification)
             await session.commit()
+
+
+async def send_notifications(notification):
+    await bot.send_message(
+        chat_id=notification.telegram_id,
+        text=ru_message.reminder_message.format(
+            notification.notification_text,
+            to_user_time(
+                notification.event_time_utc, notification.user.user_timezone_offset
+            ),
+        ),
+    )
 
 
 async def reminder_scheduler():

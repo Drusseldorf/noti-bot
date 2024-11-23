@@ -23,6 +23,7 @@ class Text(YamlBaseSettings):
     wrong_date_format: str
     notification_created: str
     something_went_wrong: str
+    reminder_message: str
 
     class Config:
         yaml_file = TEXT_PATH

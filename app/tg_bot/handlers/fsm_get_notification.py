@@ -8,15 +8,17 @@ from app.db.db_session import db_helper
 import datetime as dt
 from app.db.requests.notification_requests import create_notification
 from app.db.requests.user_requests import get_user_by_telegram_id
-from app.helpers.datetime_helpers import get_user_current_datetime, is_event_in_past
+from app.helpers.datetime_helpers import is_event_in_past, to_utc
 from app.tg_bot.keyboards.kb_select_advance_time import make_kb_select_advance_time
 from app.tg_bot.ru_text.ru_text import ru_message
 
-fsm_get_noti_router = Router()
 
 DATE_TIME_PATTERN = (
     r"^(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[0-2])\.\d{4} ([01]\d|2[0-3]):[0-5]\d$"
 )
+
+
+fsm_get_noti_router = Router()
 
 
 class FSMFillNoti(StatesGroup):
@@ -83,11 +85,15 @@ async def process_fill_advance_time(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     async with db_helper.session_factory() as session:
         try:
+            user = await get_user_by_telegram_id(session, callback.from_user.id)
             await create_notification(
                 session=session,
                 telegram_id=callback.from_user.id,
                 notification_text=data["text"],
-                event_time_utc=dt.datetime.strptime(data["date"], "%d.%m.%Y %H:%M"),
+                event_time_utc=to_utc(
+                    dt.datetime.strptime(data["date"], "%d.%m.%Y %H:%M"),
+                    user.user_timezone_offset,
+                ),
                 notification_advance_time=int(data["advance_time"]),
             )
             await callback.message.edit_text(

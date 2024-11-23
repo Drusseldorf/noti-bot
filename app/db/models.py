@@ -1,9 +1,8 @@
 from app.db.base import Base
-from datetime import datetime
+from datetime import datetime, UTC
 from sqlalchemy import (
     Text,
     DateTime,
-    func,
     ForeignKey,
     CheckConstraint,
     Boolean,
@@ -16,7 +15,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 class User(Base):
     telegram_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     created_at_utc: Mapped[datetime] = mapped_column(
-        DateTime, server_default=func.now()
+        DateTime, default=lambda: datetime.now(UTC).replace(tzinfo=None, microsecond=0)
     )
     user_timezone_offset: Mapped[int] = mapped_column(nullable=True)
 
@@ -30,7 +29,7 @@ class Notification(Base):
     )
     notification_text: Mapped[str] = mapped_column(Text, nullable=False)
     created_at_utc: Mapped[datetime] = mapped_column(
-        DateTime, server_default=func.now()
+        DateTime, default=lambda: datetime.now(UTC).replace(tzinfo=None, microsecond=0)
     )
     event_time_utc: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     notification_advance_time: Mapped[int] = mapped_column(nullable=False)
