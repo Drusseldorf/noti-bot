@@ -42,6 +42,23 @@ redis = ["redis[hiredis] (>=5.0.1,<5.1.0)"]
 test = ["aresponses (>=2.1.6,<2.2.0)", "pycryptodomex (>=3.19.0,<3.20.0)", "pytest (>=7.4.2,<7.5.0)", "pytest-aiohttp (>=1.0.5,<1.1.0)", "pytest-asyncio (>=0.21.1,<0.22.0)", "pytest-cov (>=4.1.0,<4.2.0)", "pytest-html (>=4.0.2,<4.1.0)", "pytest-lazy-fixture (>=0.6.3,<0.7.0)", "pytest-mock (>=3.12.0,<3.13.0)", "pytest-mypy (>=0.10.3,<0.11.0)", "pytz (>=2023.3,<2024.0)"]
 
 [[package]]
+name = "aiogram-calendar"
+version = "0.5.0"
+description = "Simple Inline Calendar & Date Selection tool for Aiogram Telegram bots"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "aiogram_calendar-0.5.0-py3-none-any.whl", hash = "sha256:73b1f900b946aea51e54ba0049cdd308ec775d1cb028599fcebd89fd38a0ff61"},
+    {file = "aiogram_calendar-0.5.0.tar.gz", hash = "sha256:49d76bd55ccfbc5d2c1cb0866636a626d57ea09052fdf10ce62dd39162aa4225"},
+]
+
+[package.dependencies]
+aiogram = ">=3"
+
+[package.extras]
+dev = ["pytest", "pytest-asyncio"]
+
+[[package]]
 name = "aiogram-dialog"
 version = "2.2.0"
 description = "Telegram bot UI framework on top of aiogram"
@@ -1418,4 +1435,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "7f9e310666aaf09f1cb8c8e33c2618c1447271eb9dd33e5e7d2568877ef45828"
+content-hash = "872a730a10af7c9f0775f6088b6041aa037b3ceaa84f40e1bddb74f6e4f91c11"

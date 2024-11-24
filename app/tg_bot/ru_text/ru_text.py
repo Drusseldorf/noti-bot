@@ -17,13 +17,14 @@ class Text(YamlBaseSettings):
     notifications: str
     user_timezone_set: str
     notification_advance_time: str
-    fill_date_and_time: str
+    fill_date: str
     date_in_past: str
     fill_notification_text: str
-    wrong_date_format: str
+    wrong_time_format: str
     notification_created: str
     something_went_wrong: str
     reminder_message: str
+    fill_time: str
 
     class Config:
         yaml_file = TEXT_PATH
