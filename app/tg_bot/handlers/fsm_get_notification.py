@@ -5,7 +5,7 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state, State, StatesGroup
 from aiogram.types import Message, CallbackQuery
-from aiogram_calendar import SimpleCalendar, get_user_locale, SimpleCalendarCallback
+from aiogram_calendar import SimpleCalendar, SimpleCalendarCallback
 from aiogram_calendar.schemas import SimpleCalAct
 
 from sqlalchemy.exc import IntegrityError
@@ -18,7 +18,9 @@ from app.helpers.datetime_helpers import (
     to_utc,
     get_user_current_datetime,
 )
-from app.tg_bot.keyboards.kb_select_advance_time import make_kb_select_advance_time
+from app.tg_bot.keyboards.kb_select_advance_time import (
+    make_kb_select_advance_time,
+)
 from app.tg_bot.ru_text.ru_text import ru_message
 
 
@@ -63,7 +65,7 @@ async def process_make_noti_command(message: Message, state: FSMContext):
     await message.answer(
         ru_message.fill_date.format(user_current_time),
         reply_markup=await SimpleCalendar(
-            locale=await get_user_locale(message.from_user)
+            locale="ru_RU.UTF8"
         ).start_calendar(),
     )
 
@@ -83,10 +85,13 @@ async def process_simple_calendar(
         return
 
     async with db_helper.session_factory() as session:
-        user = await get_user_by_telegram_id(session, callback_query.from_user.id)
+        user = await get_user_by_telegram_id(
+            session, callback_query.from_user.id
+        )
 
     calendar = SimpleCalendar(
-        locale=await get_user_locale(callback_query.from_user), show_alerts=True
+        locale="ru_RU.UTF8",
+        show_alerts=True,
     )
 
     user_current_time = get_user_current_datetime(user.user_timezone_offset)
@@ -96,7 +101,9 @@ async def process_simple_calendar(
         user_current_time + timedelta(weeks=52),
     )
 
-    selected, date = await calendar.process_selection(callback_query, callback_data)
+    selected, date = await calendar.process_selection(
+        callback_query, callback_data
+    )
 
     if selected:
         date = date.strftime("%Y-%m-%d")
@@ -142,12 +149,16 @@ async def process_notification_text_sent(message: Message, state: FSMContext):
 
 
 @fsm_get_noti_router.callback_query(StateFilter(FSMFillNoti.fill_advance_time))
-async def process_fill_advance_time(callback: CallbackQuery, state: FSMContext):
+async def process_fill_advance_time(
+    callback: CallbackQuery, state: FSMContext
+):
     await state.update_data(advance_time=callback.data)
     data = await state.get_data()
     async with db_helper.session_factory() as session:
         try:
-            user = await get_user_by_telegram_id(session, callback.from_user.id)
+            user = await get_user_by_telegram_id(
+                session, callback.from_user.id
+            )
             await create_notification(
                 session=session,
                 telegram_id=callback.from_user.id,
@@ -162,7 +173,9 @@ async def process_fill_advance_time(callback: CallbackQuery, state: FSMContext):
             )
             await callback.message.edit_text(
                 ru_message.notification_created.format(
-                    f"{data['date']} {data['time']}", data["text"], data["advance_time"]
+                    f"{data['date']} {data['time']}",
+                    data["text"],
+                    data["advance_time"],
                 )
             )
         except IntegrityError:

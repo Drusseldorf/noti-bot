@@ -11,9 +11,9 @@ from app.tg_bot.ru_text.ru_text import ru_message
 defoult_state_commands_router = Router()
 
 
-# TODO: добавить обработчкики для получения всех отправленных уведомлений, для редактирования уведомлений, для удаления уведомлений
+# TODO: добавить обработчкики для получения всех отправленных уведомлений,
+# для редактирования уведомлений, для удаления уведомлений
 # TODO: нужны команды с хелпом
-# TODO: сделать красивее, убрать проверки, запросы в бд в хелперы / отедельно, подумать
 # TODO: передавать сессию бд через мидлвари
 
 
@@ -36,15 +36,17 @@ async def process_my_notifications_command(message: Message):
         if not notifications:
             await message.answer(ru_message.no_notifications_yet)
         else:
-            for notification_message in notifications:
-                notification_message = ru_message.notifications.format(
-                    to_user_time(
-                        notification_message.event_time_utc, user.user_timezone_offset
-                    ),
-                    notification_message.notification_text,
-                    notification_message.notification_advance_time,
-                )
-                await message.answer(notification_message)
+            if user:
+                for notification_message in notifications:
+                    notification_message = ru_message.notifications.format(
+                        to_user_time(
+                            notification_message.event_time_utc,
+                            user.user_timezone_offset,
+                        ),
+                        notification_message.notification_text,
+                        notification_message.notification_advance_time,
+                    )
+                    await message.answer(notification_message)
 
 
 @defoult_state_commands_router.message(StateFilter(default_state))

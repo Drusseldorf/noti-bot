@@ -44,7 +44,8 @@ async def send_notifications(notification):
         text=ru_message.reminder_message.format(
             notification.notification_text,
             to_user_time(
-                notification.event_time_utc, notification.user.user_timezone_offset
+                notification.event_time_utc,
+                notification.user.user_timezone_offset,
             ),
         ),
     )

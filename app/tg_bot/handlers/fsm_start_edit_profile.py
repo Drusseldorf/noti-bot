@@ -61,7 +61,9 @@ async def process_start_edit_profile(message: Message, state: FSMContext):
 
 
 @fsm_edit_profile.callback_query(StateFilter(FSMEditProfile.fill_timezone))
-async def process_timezone_selection(callback: CallbackQuery, state: FSMContext):
+async def process_timezone_selection(
+    callback: CallbackQuery, state: FSMContext
+):
     await state.update_data(timezone_offset=callback.data)
 
     data = await state.get_data()
